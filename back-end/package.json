@@ -1,0 +1,29 @@
+{
+  "name": "back-end",
+  "version": "1.0.0",
+  "description": "back end ",
+  "main": "index.js",
+  "scripts": {
+    "build": "./node_modules/.bin/babel index.js --out-dir build",
+    "start": "npm run build && node ./build/index.js",
+    "watch": "babel-watch index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "cors": "^2.8.4",
+    "express": "^4.16.3",
+    "formidable": "^1.2.1",
+    "lodash": "^4.17.10",
+    "mongodb": "^3.1.3",
+    "mysql": "^2.16.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0",
+    "babel-watch": "^2.0.7"
+  }
+}
