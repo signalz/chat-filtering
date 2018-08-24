@@ -6,7 +6,7 @@ import _ from 'lodash';
 import bodyParser from 'body-parser';
 // import MongoClient from 'mongodb';
 
-const wordsObj = {};
+let wordsObj = {};
 const emptyCharacters = [' ', '\n', '\r', '\t'];
 
 // var MongoClient = require('mongodb').MongoClient;
@@ -26,25 +26,9 @@ const emptyCharacters = [' ', '\n', '\r', '\t'];
 //   });
 // });
 
-const test = {
-  t: {
-    h: {
-      e: {
-        f: {
-          u: {
-            c: {
-              k: ''
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
 const traverseObject = (obj, text) => {
   for (let i = 0; i < text.length; i++) {
-    const char = text.charAt(i);
+    const char = text.charAt(i).toLowerCase();
     if (emptyCharacters.includes(char)) {
         return traverseObject(obj, text.slice(i + 1));
     }
@@ -60,7 +44,34 @@ const traverseObject = (obj, text) => {
   return false;
 }
 
-// console.log(traverseObject(test, "sccasc        the fuc"));
+const convertDataToObject = data => {
+  const obj = {};
+  let path = '';
+  for (let i = 0; i < data.length; i++) {
+    const char = data.charAt(i).toLowerCase();
+    if (char === '\r' || char === '\n') {
+      if (path !== '') {
+        path = path.slice(0, -1);
+        _.set(obj, path, '');
+        path = '';
+      }
+    } else {
+
+      if (char === ' ') continue;
+
+      path = `${path}${char}.`;
+
+      if (i === data.length - 1) {
+        if (path !== '') {
+          path = path.slice(0, -1);
+          _.set(obj, path, '');
+          path = '';
+        }
+      }
+    }
+  }
+  return obj;
+}
 
 const app = express();
 app.use(cors());
@@ -71,6 +82,7 @@ app.get('/', (req, res) => {
 });
 
 app.post('/upload', (req, res) => {
+  console.log('receive', new Date());
   const form = new formidable.IncomingForm();
   form.parse(req);
   form.on('file', (name, file) => {
@@ -79,15 +91,9 @@ app.post('/upload', (req, res) => {
         if (err) throw err;
         // data will contain the file contents
         // blacklist words
-        const words = data.split('\r\n');
-        // convert blacklist words to "set" of words
-        words.forEach(word => {
-          const singleWords = word.trim().split(' ');
-          _.set(wordsObj, singleWords, '');
-        });
-        // extract each word and save to trie format
-        // ex: "this is a blacklist word" => { t:{ h: { i: {s ...}}}}
-        console.log(JSON.stringify(wordsObj));
+        wordsObj = convertDataToObject(data);
+        fs.writeFile('json.json', JSON.stringify(wordsObj), 'utf8', () => true);
+        console.log('convert done', new Date());
         res.json({ data: 'saved file' });
       });
     } catch(e) {
@@ -97,8 +103,12 @@ app.post('/upload', (req, res) => {
 });
 
 app.post('/text',  (req, res) => {
+  console.log('text receive', new Date());
   const text = req.body.data;
-  res.json({ data: traverseObject(wordsObj, text) });
+  console.log(text);
+  const result = traverseObject(wordsObj, text);
+  console.log('done process', new Date());
+  res.json({ data: result });
 });
 
 app.listen(5000, () => console.log('Example app listening on port 5000!'));
