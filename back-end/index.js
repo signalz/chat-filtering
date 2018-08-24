@@ -112,3 +112,5 @@ app.post('/text',  (req, res) => {
 });
 
 app.listen(5000, () => console.log('Example app listening on port 5000!'));
+
+// handle words like zzz, zzzt
