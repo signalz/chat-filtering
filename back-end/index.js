@@ -6,7 +6,7 @@ import _ from 'lodash';
 import bodyParser from 'body-parser';
 // import MongoClient from 'mongodb';
 
-import { traverseObject, convertDataToObject } from './helper';
+import { convertDataToObject, checkText } from './helper';
 
 let wordsObj = {};
 
@@ -27,11 +27,6 @@ let wordsObj = {};
 //   });
 // });
 
-const data = '1092\r\n2199\r\nzZZ\r\n10982\r\n1093 23';
-console.log(JSON.stringify(convertDataToObject(data)));
-const obj = convertDataToObject(data);
-console.log(traverseObject(obj, obj, '13092  1980 1093 23'));
-
 const app = express();
 app.use(cors());
 app.use(bodyParser());
@@ -50,14 +45,8 @@ app.post('/upload', (req, res) => {
         if (err) throw err;
         // data will contain the file contents
         // blacklist words
-        // gen file with multi words
-        // let newString = '';
-        // const words = data.split('\r\n');
-        // words.forEach(word => {
-        //   newString = `${newString}${words[_.random(0, words.length - 1)]} ${words[_.random(0, words.length - 1)]} ${words[_.random(0, words.length - 1)]}\r\n`;
-        // });
-        // wordsObj = convertDataToObject(data);
-        fs.writeFile('newWords.txt', newString, 'utf8', () => true);
+        wordsObj = convertDataToObject(data);
+        fs.writeFile('json.json', JSON.stringify(wordsObj), 'utf8', () => true);
         console.log('convert done', new Date());
         res.json({ data: 'saved file' });
       });
@@ -70,8 +59,7 @@ app.post('/upload', (req, res) => {
 app.post('/text',  (req, res) => {
   console.log('text receive', new Date());
   const text = req.body.data;
-  console.log(text);
-  const result = traverseObject(wordsObj, text);
+  const result = checkText(text, wordsObj);
   console.log('done process', new Date());
   res.json({ data: result });
 });

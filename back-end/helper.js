@@ -2,25 +2,44 @@ import _ from 'lodash';
 
 export const emptyCharacters = [' ', '\n', '\r', '\t'];
 
-export const traverseObject = (originObj, obj, text) => {
-  let objToTraverse = obj;
+export const buildPath = text => {
+  let path = '';
   for (let i = 0; i < text.length; i++) {
     const char = text.charAt(i).toLowerCase();
     if (emptyCharacters.includes(char)) {
       continue;
-    }
+    } else {}
+  }
+}
 
-    if (objToTraverse[char]) {
-      if (objToTraverse[char].isEnd) {
-        return true;
+export const checkText = (text, wordsObject) => {
+  let isContains = false;
+  const traverseObject = (originObj, obj, firstIndex, startIndex, text) => {
+    let objToTraverse = obj;
+    for (let i = startIndex; i < text.length; i++) {
+      const char = text.charAt(i).toLowerCase();
+      // console.log(char);
+      if (emptyCharacters.includes(char)) {
+        continue;
       }
-      objToTraverse = objToTraverse[char];
-      return traverseObject(originObj, objToTraverse, text.slice(i + 1));
-    } else {
-      return traverseObject(originObj, originObj, text.slice(i + 1));
+      if (objToTraverse[char]) {
+        if (objToTraverse[char].isEnd) {
+          isContains = true;
+          return;
+        }
+        objToTraverse = objToTraverse[char];
+        // console.log('recursive');
+        return traverseObject(originObj, objToTraverse, firstIndex, i + 1, text);
+      } else {
+        // console.log('next');
+        return traverseObject(originObj, originObj, firstIndex + 1, firstIndex +1, text);
+      }
     }
   }
-  return false;
+
+  traverseObject(wordsObject, wordsObject, 0, 0, text);
+
+  return isContains;
 }
 
 export const convertDataToObject = data => {
