@@ -6,8 +6,9 @@ import _ from 'lodash';
 import bodyParser from 'body-parser';
 // import MongoClient from 'mongodb';
 
+import { traverseObject, convertDataToObject } from './helper';
+
 let wordsObj = {};
-const emptyCharacters = [' ', '\n', '\r', '\t'];
 
 // var MongoClient = require('mongodb').MongoClient;
 // const mongodbConnection = MongoClient.MongoClient;
@@ -26,90 +27,55 @@ const emptyCharacters = [' ', '\n', '\r', '\t'];
 //   });
 // });
 
-const traverseObject = (originObj, obj, text) => {
-  let objToTraverse = obj;
-  for (let i = 0; i < text.length; i++) {
-    const char = text.charAt(i).toLowerCase();
-    if (emptyCharacters.includes(char)) {
-      continue;
-    }
-
-    if (objToTraverse[char]) {
-      if (objToTraverse[char].isEnd) {
-        return true;
-      }
-      objToTraverse = objToTraverse[char];
-      return traverseObject(originObj, objToTraverse, text.slice(i + 1));
-    } else {
-      return traverseObject(originObj, originObj, text.slice(i + 1));
-    }
-  }
-  return false;
-}
-
-const convertDataToObject = data => {
-  let obj = {};
-  let path = '';
-  for (let i = 0; i <= data.length; i++) {
-    const char = data.charAt(i).toLowerCase();
-    if (char === '\r' || char === '\n' || !char ) {
-      if (path !== '') {
-        const newWord = _.setWith({}, path, { isEnd: true }, Object);
-        obj = _.merge(obj, newWord);
-        path = '';
-      }
-    } else {
-      if (char === ' ') continue;
-
-      path = `${path}[${char}]`;
-    }
-  }
-  return obj;
-}
-
 const data = '1092\r\n2199\r\nzZZ\r\n10982\r\n1093 23';
 console.log(JSON.stringify(convertDataToObject(data)));
 const obj = convertDataToObject(data);
 console.log(traverseObject(obj, obj, '13092  1980 1093 23'));
 
-// const app = express();
-// app.use(cors());
-// app.use(bodyParser());
+const app = express();
+app.use(cors());
+app.use(bodyParser());
 
-// app.get('/', (req, res) => {
-//   res.json({ data: 'Hello World!'});
-// });
+app.get('/', (req, res) => {
+  res.json({ data: 'Hello World!'});
+});
 
-// app.post('/upload', (req, res) => {
-//   console.log('receive', new Date());
-//   const form = new formidable.IncomingForm();
-//   form.parse(req);
-//   form.on('file', (name, file) => {
-//     try {
-//       fs.readFile(file.path, 'utf8', (err, data) => {
-//         if (err) throw err;
-//         // data will contain the file contents
-//         // blacklist words
-//         wordsObj = convertDataToObject(data);
-//         fs.writeFile('json.json', JSON.stringify(wordsObj), 'utf8', () => true);
-//         console.log('convert done', new Date());
-//         res.json({ data: 'saved file' });
-//       });
-//     } catch(e) {
-//       res.json({ data: 'error' });
-//     }
-//   });
-// });
+app.post('/upload', (req, res) => {
+  console.log('receive', new Date());
+  const form = new formidable.IncomingForm();
+  form.parse(req);
+  form.on('file', (name, file) => {
+    try {
+      fs.readFile(file.path, 'utf8', (err, data) => {
+        if (err) throw err;
+        // data will contain the file contents
+        // blacklist words
+        // gen file with multi words
+        // let newString = '';
+        // const words = data.split('\r\n');
+        // words.forEach(word => {
+        //   newString = `${newString}${words[_.random(0, words.length - 1)]} ${words[_.random(0, words.length - 1)]} ${words[_.random(0, words.length - 1)]}\r\n`;
+        // });
+        // wordsObj = convertDataToObject(data);
+        fs.writeFile('newWords.txt', newString, 'utf8', () => true);
+        console.log('convert done', new Date());
+        res.json({ data: 'saved file' });
+      });
+    } catch(e) {
+      res.json({ data: 'error' });
+    }
+  });
+});
 
-// app.post('/text',  (req, res) => {
-//   console.log('text receive', new Date());
-//   const text = req.body.data;
-//   console.log(text);
-//   const result = traverseObject(wordsObj, text);
-//   console.log('done process', new Date());
-//   res.json({ data: result });
-// });
+app.post('/text',  (req, res) => {
+  console.log('text receive', new Date());
+  const text = req.body.data;
+  console.log(text);
+  const result = traverseObject(wordsObj, text);
+  console.log('done process', new Date());
+  res.json({ data: result });
+});
 
-// app.listen(5000, () => console.log('Example app listening on port 5000!'));
+app.listen(5000, () => console.log('Example app listening on port 5000!'));
 
 // handle words like zzz, zzzt
