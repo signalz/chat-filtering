@@ -26,21 +26,22 @@ const emptyCharacters = [' ', '\n', '\r', '\t'];
 //   });
 // });
 
-const traverseObject = (obj, text) => {
+const traverseObject = (originObj, obj, text) => {
+  let objToTraverse = obj;
   for (let i = 0; i < text.length; i++) {
     const char = text.charAt(i).toLowerCase();
-    console.log(char);
     if (emptyCharacters.includes(char)) {
-      // return traverseObject(obj, text.slice(i + 1));
       continue;
     }
 
-    if (obj[char].isEnd) {
-      return true;
-    }
-
-    if (obj[char]) {
-      return traverseObject(obj[char], text.slice(i + 1));
+    if (objToTraverse[char]) {
+      if (objToTraverse[char].isEnd) {
+        return true;
+      }
+      objToTraverse = objToTraverse[char];
+      return traverseObject(originObj, objToTraverse, text.slice(i + 1));
+    } else {
+      return traverseObject(originObj, originObj, text.slice(i + 1));
     }
   }
   return false;
@@ -66,10 +67,10 @@ const convertDataToObject = data => {
   return obj;
 }
 
-const data = '1092\r\n2199\r\nzZZ\r\n10982\r\n1098 23';
+const data = '1092\r\n2199\r\nzZZ\r\n10982\r\n1093 23';
 console.log(JSON.stringify(convertDataToObject(data)));
 const obj = convertDataToObject(data);
-console.log(traverseObject(obj, ' , 11039222   fdsfd          '));
+console.log(traverseObject(obj, obj, '13092  1980 1093 23'));
 
 // const app = express();
 // app.use(cors());
