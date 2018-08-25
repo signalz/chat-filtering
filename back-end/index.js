@@ -29,11 +29,13 @@ const emptyCharacters = [' ', '\n', '\r', '\t'];
 const traverseObject = (obj, text) => {
   for (let i = 0; i < text.length; i++) {
     const char = text.charAt(i).toLowerCase();
+    console.log(char);
     if (emptyCharacters.includes(char)) {
-        return traverseObject(obj, text.slice(i + 1));
+      // return traverseObject(obj, text.slice(i + 1));
+      continue;
     }
 
-    if (obj[char] === '') {
+    if (obj[char].isEnd) {
       return true;
     }
 
@@ -45,72 +47,68 @@ const traverseObject = (obj, text) => {
 }
 
 const convertDataToObject = data => {
-  const obj = {};
+  let obj = {};
   let path = '';
-  for (let i = 0; i < data.length; i++) {
+  for (let i = 0; i <= data.length; i++) {
     const char = data.charAt(i).toLowerCase();
-    if (char === '\r' || char === '\n') {
+    if (char === '\r' || char === '\n' || !char ) {
       if (path !== '') {
-        path = path.slice(0, -1);
-        _.set(obj, path, '');
+        const newWord = _.setWith({}, path, { isEnd: true }, Object);
+        obj = _.merge(obj, newWord);
         path = '';
       }
     } else {
-
       if (char === ' ') continue;
 
-      path = `${path}${char}.`;
-
-      if (i === data.length - 1) {
-        if (path !== '') {
-          path = path.slice(0, -1);
-          _.set(obj, path, '');
-          path = '';
-        }
-      }
+      path = `${path}[${char}]`;
     }
   }
   return obj;
 }
 
-const app = express();
-app.use(cors());
-app.use(bodyParser());
+const data = '1092\r\n2199\r\nzZZ\r\n10982\r\n1098 23';
+console.log(JSON.stringify(convertDataToObject(data)));
+const obj = convertDataToObject(data);
+console.log(traverseObject(obj, ' , 11039222   fdsfd          '));
 
-app.get('/', (req, res) => {
-  res.json({ data: 'Hello World!'});
-});
+// const app = express();
+// app.use(cors());
+// app.use(bodyParser());
 
-app.post('/upload', (req, res) => {
-  console.log('receive', new Date());
-  const form = new formidable.IncomingForm();
-  form.parse(req);
-  form.on('file', (name, file) => {
-    try {
-      fs.readFile(file.path, 'utf8', (err, data) => {
-        if (err) throw err;
-        // data will contain the file contents
-        // blacklist words
-        wordsObj = convertDataToObject(data);
-        fs.writeFile('json.json', JSON.stringify(wordsObj), 'utf8', () => true);
-        console.log('convert done', new Date());
-        res.json({ data: 'saved file' });
-      });
-    } catch(e) {
-      res.json({ data: 'error' });
-    }
-  });
-});
+// app.get('/', (req, res) => {
+//   res.json({ data: 'Hello World!'});
+// });
 
-app.post('/text',  (req, res) => {
-  console.log('text receive', new Date());
-  const text = req.body.data;
-  console.log(text);
-  const result = traverseObject(wordsObj, text);
-  console.log('done process', new Date());
-  res.json({ data: result });
-});
+// app.post('/upload', (req, res) => {
+//   console.log('receive', new Date());
+//   const form = new formidable.IncomingForm();
+//   form.parse(req);
+//   form.on('file', (name, file) => {
+//     try {
+//       fs.readFile(file.path, 'utf8', (err, data) => {
+//         if (err) throw err;
+//         // data will contain the file contents
+//         // blacklist words
+//         wordsObj = convertDataToObject(data);
+//         fs.writeFile('json.json', JSON.stringify(wordsObj), 'utf8', () => true);
+//         console.log('convert done', new Date());
+//         res.json({ data: 'saved file' });
+//       });
+//     } catch(e) {
+//       res.json({ data: 'error' });
+//     }
+//   });
+// });
 
-app.listen(5000, () => console.log('Example app listening on port 5000!'));
+// app.post('/text',  (req, res) => {
+//   console.log('text receive', new Date());
+//   const text = req.body.data;
+//   console.log(text);
+//   const result = traverseObject(wordsObj, text);
+//   console.log('done process', new Date());
+//   res.json({ data: result });
+// });
+
+// app.listen(5000, () => console.log('Example app listening on port 5000!'));
 
 // handle words like zzz, zzzt
