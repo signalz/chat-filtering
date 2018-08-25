@@ -3,8 +3,15 @@ import logo from './logo.svg';
 import './App.css';
 
 class App extends Component {
-  uploadFile = (data) => {
-    fetch('http://localhost:5000/upload', {
+  constructor(props) {
+    super(props);
+    this.state = {
+      url: ''
+    }
+  }
+
+  uploadFile = (data, url) => {
+    fetch(`http://localhost:5000/${url}`, {
       method: 'post',
       body: data
     }).then((response) => response.json()
@@ -14,14 +21,26 @@ class App extends Component {
     });
   }
 
-  handleUploadFile = (e) => {
+  onInputFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       const data = new FormData();
       data.append('file', file);
       data.append('name', file.name);
-      this.uploadFile(data);
+      this.file = data;
+    } else {
+      this.file = undefined;
     }
+  }
+
+  onButtonClickHandle = () => {
+    this.uploadFile(this.data, this.state.url);
+  }
+
+  onInputTextChange = (e) => {
+    this.setState({
+      url: `${e.target.value}`
+    })
   }
 
   render() {
@@ -31,9 +50,19 @@ class App extends Component {
           <img src={logo} className="App-logo" alt="logo" />
           <h1 className="App-title">Welcome to React</h1>
         </header>
-        <p className="App-intro">
-          <input type='file' onChange={this.handleUploadFile}></input>
-        </p>
+        <div className="App-intro">
+          <div>
+            <div>
+              <input type='file' onChange={this.onInputFileChange}></input>
+            </div>
+            <div>
+              <input type='text' onChange={this.onInputTextChange} value={this.state.url} placeholder='path to upload file'></input>
+            </div>
+            <div>
+              <button onClick={this.onButtonClickHandle}>Upload file</button>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
