@@ -58,3 +58,26 @@ export const convertDataToObject = data => {
   }
   return obj;
 }
+
+export const newCheck = (text, obj) => {
+  console.log(text);
+  let objToTraverse = obj;
+  for (let i = 0; i < text.length;) {
+    const char = text.charAt(i).toLowerCase();
+    console.log(char);
+    if (objToTraverse[char]) {
+      if (objToTraverse[char].isEnd) {
+        return true;
+      }
+      objToTraverse = objToTraverse[char];
+      ++i;
+    } else {
+      if (objToTraverse === obj) {
+        ++i;
+      } else {
+        objToTraverse = obj;
+      }
+    }
+  }
+  return false;
+}
