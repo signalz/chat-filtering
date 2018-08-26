@@ -5,11 +5,26 @@ import fs from 'fs';
 import _ from 'lodash';
 import bodyParser from 'body-parser';
 import MongoClient from 'mongodb';
+import mysql from 'mysql';
 
 import { convertDataToObject, checkText } from './helper';
 
+const pool = mysql.createPool({
+  connectionLimit: 10,
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database: 'mydb'
+});
+// const mysqlConnection = mysql.createConnection({
+//   host: 'localhost',
+//   user: 'root',
+//   password: '',
+//   database: 'mydb'
+// });
+
 // let wordsObj = {};
-let wordsString = [];
+// let wordsString = [];
 
 const mongodbConnection = MongoClient.MongoClient;
 // const ObjectID = MongoClient.ObjectID;
@@ -52,8 +67,6 @@ app.post('/upload', (req, res) => {
         });
         // fs.writeFile('json.json', JSON.stringify(wordsObj), 'utf8', () => true);
       });
-      // console.log('done', JSON.stringify(wordsObj));
-      // res.json({ data: 'saved file' });
     } catch(e) {
       res.json({ data: 'error' });
     }
@@ -72,6 +85,7 @@ app.post('/text',  (req, res) => {
         // update the list
         const result = checkText(text, wordsObj);
         console.log('done process', new Date());
+        client.close();
         res.json({ data: result });
       });
     });
@@ -80,47 +94,64 @@ app.post('/text',  (req, res) => {
   }
 });
 
-// app.post('/upload-split', (req, res) => {
-//   console.log('receive', new Date());
-//   const form = new formidable.IncomingForm();
-//   form.parse(req);
-//   try {
-//     form.on('file', (name, file) => {
-//       try {
-//         fs.readFile(file.path, 'utf8', (err, data) => {
-//           if (err) {
-//             throw err;
-//           };
-//           wordsString = data.split('\r\n');
-//           // fs.writeFile('2m-words.txt', newWords, 'utf8', () => true);
-//           console.log('convert done', new Date());
-//           res.json({ data: 'saved file' });
-//         });
-//       } catch(e) {
-//         console.log('error', new Date());
-//         res.json({ data: 'error' });
-//       }
-//     });
-//   } catch (e) {
-//     console.log(e);
-//   }
-// });
+app.post('/upload-split', (req, res) => {
+  console.log('receive', new Date());
+  const form = new formidable.IncomingForm();
+  form.parse(req);
+  form.on('file', (name, file) => {
+    try {
+      fs.readFile(file.path, 'utf8', (err, data) => {
+        if (err) {
+          throw err;
+        };
+        const wordsString = data.split('\r\n');
+        // const insertArray = [];
+        wordsString.forEach(word => insertArray.push([word]));
+        pool.getConnection((err, connection) => {
+          if (err) throw err;
+          const sql = 'INSERT INTO words (word) VALUES ?';
+          connection.query(sql, [insertArray], (err, result) => {
+            connection.release();
+            if (err) throw err;
+            console.log('Number of records inserted: ' + result.affectedRows, new Date());
+            res.json({ data: 'saved file' });
+          });
+        });
+      });
+    } catch(e) {
+      console.log('error', new Date());
+      res.json({ data: 'error' });
+    }
+  });
+});
 
-// app.post('/text-split',  (req, res) => {
-//   console.log('text receive', new Date());
-//   const text = req.body.data;
-//   const check = text => {
-//     for (let i = 0; i < wordsString.length; i++) {
-//       if (wordsString[i] && text.includes(wordsString[i].trim())) {
-//         // console.log(`s${wordsString[i]}s`);
-//         return true
-//       }
-//     }
-//     return false;
-//   }
-//   const result = check(text);
-//   console.log('done process', new Date());
-//   res.json({ data: result });
-// });
+app.post('/text-split',  (req, res) => {
+  console.log('text receive', new Date());
+  const text = req.body.data;
+  try {
+    pool.getConnection((err, connection) => {
+      if (err) throw err;
+      connection.query('SELECT * FROM words', (err, result, fields) => {
+        connection.release();
+        if (err) throw err;
+        const check = text => {
+          for (let i = 0; i < result.length; i++) {
+            if (result[i].word && text.includes(result[i].word.trim())) {
+              // console.log(`s${wordsString[i]}s`);
+              return true
+            }
+          }
+          return false;
+        }
+        const isContain = check(text);
+        console.log('done process', new Date());
+        res.json({ data: isContain });
+      });
+    });
+  } catch(e) {
+    console.log('error', new Date());
+    res.json({ data: 'error' });
+  }
+});
 
 app.listen(5000, () => console.log('Example app listening on port 5000!'));
