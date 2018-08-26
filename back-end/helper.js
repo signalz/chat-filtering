@@ -18,7 +18,6 @@ export const checkText = (text, wordsObject) => {
     let objToTraverse = obj;
     for (let i = startIndex; i < text.length; i++) {
       const char = text.charAt(i).toLowerCase();
-      // console.log(char);
       if (emptyCharacters.includes(char)) {
         continue;
       }
@@ -28,10 +27,8 @@ export const checkText = (text, wordsObject) => {
           return;
         }
         objToTraverse = objToTraverse[char];
-        // console.log('recursive');
         return traverseObject(originObj, objToTraverse, firstIndex, i + 1, text);
       } else {
-        // console.log('next');
         return traverseObject(originObj, originObj, firstIndex + 1, firstIndex +1, text);
       }
     }

@@ -27,14 +27,12 @@ class App extends Component {
       const data = new FormData();
       data.append('file', file);
       data.append('name', file.name);
-      this.file = data;
-    } else {
-      this.file = undefined;
+      this.uploadFile(data, this.state.url);
     }
   }
 
-  onButtonClickHandle = () => {
-    this.uploadFile(this.data, this.state.url);
+  onInputFileClick = event => {
+    event.target.value = null;
   }
 
   onInputTextChange = (e) => {
@@ -53,13 +51,15 @@ class App extends Component {
         <div className="App-intro">
           <div>
             <div>
-              <input type='file' onChange={this.onInputFileChange}></input>
+              <input
+                type='file'
+                onChange={this.onInputFileChange}
+                onClick={this.onInputFileClick}
+              >
+              </input>
             </div>
             <div>
               <input type='text' onChange={this.onInputTextChange} value={this.state.url} placeholder='path to upload file'></input>
-            </div>
-            <div>
-              <button onClick={this.onButtonClickHandle}>Upload file</button>
             </div>
           </div>
         </div>
