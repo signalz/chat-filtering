@@ -5,7 +5,7 @@ import fs from 'fs';
 import _ from 'lodash';
 import bodyParser from 'body-parser';
 
-import { convertDataToObject, checkText } from './helper';
+import { convertDataToObject, isContain } from './helper';
 
 const app = express();
 app.use(cors());
@@ -46,7 +46,8 @@ app.post('/text',  (req, res) => {
   try {
     fs.readFile('words.json', 'utf8', (err, data) => {
       if (err) throw err;
-      const result = checkText(text, JSON.parse(data));
+      // const result = isContain(text.replace(/ |\n|\r|\t/g, ''), JSON.parse(data));
+      const result = isContain(text, JSON.parse(data));
       console.log('process done', new Date());
       res.json({ data: result });
     });

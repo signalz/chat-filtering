@@ -2,43 +2,6 @@ import _ from 'lodash';
 
 export const emptyCharacters = [' ', '\n', '\r', '\t'];
 
-export const buildPath = text => {
-  let path = '';
-  for (let i = 0; i < text.length; i++) {
-    const char = text.charAt(i).toLowerCase();
-    if (emptyCharacters.includes(char)) {
-      continue;
-    } else {}
-  }
-}
-
-export const checkText = (text, wordsObject) => {
-  let isContains = false;
-  const traverseObject = (originObj, obj, firstIndex, startIndex, text) => {
-    let objToTraverse = obj;
-    for (let i = startIndex; i < text.length; i++) {
-      const char = text.charAt(i).toLowerCase();
-      if (emptyCharacters.includes(char)) {
-        continue;
-      }
-      if (objToTraverse[char]) {
-        if (objToTraverse[char].isEnd) {
-          isContains = true;
-          return;
-        }
-        objToTraverse = objToTraverse[char];
-        return traverseObject(originObj, objToTraverse, firstIndex, i + 1, text);
-      } else {
-        return traverseObject(originObj, originObj, firstIndex + 1, firstIndex +1, text);
-      }
-    }
-  }
-
-  traverseObject(wordsObject, wordsObject, 0, 0, text);
-
-  return isContains;
-}
-
 export const convertDataToObject = data => {
   let obj = {};
   let path = '';
@@ -59,23 +22,28 @@ export const convertDataToObject = data => {
   return obj;
 }
 
-export const newCheck = (text, obj) => {
-  console.log(text);
+export const isContain = (text, obj) => {
   let objToTraverse = obj;
-  for (let i = 0; i < text.length;) {
-    const char = text.charAt(i).toLowerCase();
-    console.log(char);
-    if (objToTraverse[char]) {
-      if (objToTraverse[char].isEnd) {
-        return true;
+  for (let i = 0; i < text.length; i++) {
+    for (let j = i; j < text.length;) {
+      const char = text.charAt(j).toLowerCase();
+      if (emptyCharacters.includes(char)) {
+        ++j;
+        continue;
       }
-      objToTraverse = objToTraverse[char];
-      ++i;
-    } else {
-      if (objToTraverse === obj) {
-        ++i;
+      if (objToTraverse[char]) {
+        if (objToTraverse[char].isEnd) {
+          return true;
+        }
+        objToTraverse = objToTraverse[char];
+        ++j;
       } else {
-        objToTraverse = obj;
+        if (objToTraverse === obj) {
+          ++j;
+        } else {
+          objToTraverse = obj;
+          break;
+        }
       }
     }
   }
